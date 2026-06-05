@@ -236,7 +236,7 @@
 
     <script>
         async function rezepteHolen() {
-            const antwort = await fetch("http://127.0.0.1:8000/rezepte", {
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
                 headers: {"Authorization": `Bearer ${token}`}
             });
             const rezepte = await antwort.json();
@@ -247,7 +247,7 @@
             rezepte.forEach(rezept => {
                 liste.innerHTML += `
                     <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="http://127.0.0.1:8000${rezept.foto}">` : ""}
+                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
                         <div class="rezept-karte-inhalt">
                             <h3>${rezept.titel}</h3>
                             <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
@@ -272,7 +272,7 @@
             if (fotoDatei) {
                 const formData = new FormData();
                 formData.append("datei", fotoDatei);
-                const fotoAntwort = await fetch("http://127.0.0.1:8000/upload-foto", {
+                const fotoAntwort = await fetch("https://web-production-a5f03.up.railway.app/upload-foto", {
                     method: "POST",
                     body: formData
                 });
@@ -291,7 +291,7 @@
                 foto: fotoUrl
             };
 
-            await fetch("http://127.0.0.1:8000/rezepte", {
+            await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -312,7 +312,7 @@
         }
 
         async function rezeptLoeschen(id) {
-            await fetch(`http://127.0.0.1:8000/rezepte/${id}`, {
+            await fetch(`https://web-production-a5f03.up.railway.app/rezepte/${id}`, {
                 method: "DELETE",
                 headers: {"Authorization": `Bearer ${token}`}
             });
@@ -321,7 +321,7 @@
 
         async function rezepteSuchen() {
             const suchbegriff= document.getElementById("suche").value.toLowerCase();
-            const antwort = await fetch("http://127.0.0.1:8000/rezepte");
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte");
             const rezepte = await antwort.json();
 
             const gefiltert = rezepte.filter(rezept =>
@@ -335,7 +335,7 @@
             gefiltert.forEach(rezept => {
                    liste.innerHTML += `
                     <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="http://127.0.0.1:8000${rezept.foto}">` : ""}
+                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
                         <div class="rezept-karte-inhalt">
                             <h3>${rezept.titel}</h3>
                             <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
@@ -354,7 +354,7 @@
 
         async function rezepteFiltern() {
             const kategorie = document.getElementById("filter-kategorie").value;
-            const antwort = await fetch("http://127.0.0.1:8000/rezepte");
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte");
             const rezepte = await antwort.json();
 
             const gefiltert = kategorie === "" ? rezepte : rezepte.filter(rezept =>
@@ -367,7 +367,7 @@
             gefiltert.forEach(rezept => {
                 liste.innerHTML += `
                        <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="http://127.0.0.1:8000${rezept.foto}">` : ""}
+                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
                         <div class="rezept-karte-inhalt">
                             <h3>${rezept.titel}</h3>
                             <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
@@ -420,7 +420,7 @@
                 foto: ""
             };
 
-                await fetch(`http://127.0.0.1:8000/rezepte/${aktuelleId}`, {
+                await fetch(`https://web-production-a5f03.up.railway.app/rezepte/${aktuelleId}`, {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -440,7 +440,7 @@
             const username = document.getElementById("login-username").value;
             const passwort = document.getElementById("login-passwort").value;
 
-            const antwort = await fetch("http://127.0.0.1:8000/login", {
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/login", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({username, passwort})
@@ -472,7 +472,7 @@
             const email = document.getElementById("reg-email").value;
             const passwort = document.getElementById("reg-passwort").value;
 
-            const antwort = await fetch("http://127.0.0.1:8000/registrieren", {
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/registrieren", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({username, email, passwort})
