@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meine Rezepte</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&family=Shadows+Into+Light&display=swap');
@@ -153,6 +154,34 @@
         .form-gruppe {
             max-width: 600px;
         }
+
+        @media (max-width: 600px) {
+        .form-row {
+            flex-direction: column;
+        }
+
+        .rezepte-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .suche-filter {
+            flex-direction: column;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+        }
+
+        button {
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .container {
+            padding: 15px 10px;
+        }
+    }
+
     </style>
 </head>
 <body>
