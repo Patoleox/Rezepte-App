@@ -282,9 +282,15 @@
             console.log("Rezepte:", JSON.stringify(rData));
         }
 
-        let token = null;
+        let token = localStorage.getItem("token");
         let aktuelleId = null;
         let alleRezepte = [];
+
+        if (token) {
+            document.getElementById("login-bereich").style.display = "none";
+            document.getElementById("app-bereich").style.display = "block";
+            rezepteHolen();
+        }
 
         function zeilenUmbrueche(text) {
             return text ? text.replace(/\n/g, '<br>') : '';
@@ -439,6 +445,7 @@
             const data = await antwort.json();
             if (data.token) {
                 token = data.token;
+                localStorage.setItem("token", token);
                 document.getElementById("login-bereich").style.display = "none";
                 document.getElementById("app-bereich").style.display = "block";
                 rezepteHolen();
