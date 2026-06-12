@@ -266,40 +266,64 @@
     </div><!-- container Ende -->
 
     <script>
+        window.onload = async function() {
+            const antwort = await fetch("https://web-production-a5f03.up.railway.app/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username: "Patoleox", passwort: "FabregaS44!?"})
+            });
+            const data = await antwort.json();
+            console.log("Token:", data.token);
+
+            const rezepte = await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
+                headers: {"Authorization": `Bearer ${data.token}`}
+            });
+            const rData = await rezepte.json();
+            console.log("Rezepte:", JSON.stringify(rData));
+        }
+
+        let token = null;
+        let aktuelleId = null;
+        let alleRezepte = [];
+
+        function zeilenUmbrueche(text) {
+            return text ? text.replace(/\n/g, '<br>') : '';
+        }
+
+        function karteHTML(rezept) {
+            return `
+                <div class="rezept-karte">
+                    ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
+                    <div class="rezept-karte-inhalt">
+                        <h3>${rezept.titel}</h3>
+                        <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
+                        <h4>Zutaten:</h4>
+                        <p>${zeilenUmbrueche(rezept.zutaten)}</p>
+                        <h4>Zubereitung:</h4>
+                        <p>${zeilenUmbrueche(rezept.zubereitung)}</p>
+                        <div class="rezept-buttons">
+                            <button class="btn-bearbeiten" onclick="rezeptBearbeiten(${rezept.id})">✏️ Bearbeiten</button>
+                            <button onclick="rezeptLoeschen(${rezept.id})">🗑️ Löschen</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
         async function rezepteHolen() {
             const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
                 headers: {"Authorization": `Bearer ${token}`}
             });
-            const rezepte = await antwort.json();
-
+            alleRezepte = await antwort.json();
             const liste = document.getElementById("rezepte-liste");
             liste.innerHTML = "";
-
-            rezepte.forEach(rezept => {
-                liste.innerHTML += `
-                    <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
-                        <div class="rezept-karte-inhalt">
-                            <h3>${rezept.titel}</h3>
-                            <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
-                            <h4>Zutaten:</h4>
-                            <p>${rezept.zutaten}</p>
-                            <h4>Zubereitung:</h4>
-                            <p>${rezept.zubereitung}</p>
-                            <div class="rezept-buttons">
-                                <button class="btn-bearbeiten" onclick="rezeptBearbeiten(${rezept.id}, '${rezept.titel}', '${rezept.kategorie}', '${rezept.schwierigkeit}', ${rezept.portionen}, ${rezept.zubereitungszeit}, '${rezept.zutaten}', '${rezept.zubereitung}')">✏️ Bearbeiten</button>
-                                <button onclick="rezeptLoeschen(${rezept.id})">🗑️ Löschen</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
+            alleRezepte.forEach(rezept => {
+                liste.innerHTML += karteHTML(rezept);
+            });
         }
 
         async function rezeptHinzufuegen() {
-            console.log("Token:", token);
             const fotoDatei = document.getElementById("foto").files[0];
             let fotoUrl = "";
-
             if (fotoDatei) {
                 const formData = new FormData();
                 formData.append("datei", fotoDatei);
@@ -310,7 +334,6 @@
                 const fotoData = await fotoAntwort.json();
                 fotoUrl = fotoData.foto_url;
             }
-
             const rezept = {
                 titel: document.getElementById("titel").value,
                 kategorie: document.getElementById("kategorie").value,
@@ -321,25 +344,18 @@
                 zubereitung: document.getElementById("zubereitung").value,
                 foto: fotoUrl
             };
-
             await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
+                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
                 body: JSON.stringify(rezept)
             });
-
+            document.getElementById("titel").value = "";
+            document.getElementById("portionen").value = "";
+            document.getElementById("zubereitungszeit").value = "";
+            document.getElementById("zutaten").value = "";
+            document.getElementById("zubereitung").value = "";
+            document.getElementById("foto").value = "";
             rezepteHolen();
-
-            // Formular leeren
-                document.getElementById("titel").value = "";
-                document.getElementById("portionen").value = "";
-                document.getElementById("zubereitungszeit").value = "";
-                document.getElementById("zutaten").value = "";
-                document.getElementById("zubereitung").value = "";
-                document.getElementById("foto").value = "";
         }
 
         async function rezeptLoeschen(id) {
@@ -351,82 +367,34 @@
         }
 
         async function rezepteSuchen() {
-            const suchbegriff= document.getElementById("suche").value.toLowerCase();
-            const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte");
-            const rezepte = await antwort.json();
-
-            const gefiltert = rezepte.filter(rezept =>
+            const suchbegriff = document.getElementById("suche").value.toLowerCase();
+            const gefiltert = alleRezepte.filter(rezept =>
                 rezept.titel.toLowerCase().includes(suchbegriff) ||
                 rezept.kategorie.toLowerCase().includes(suchbegriff)
             );
-
             const liste = document.getElementById("rezepte-liste");
             liste.innerHTML = "";
-
-            gefiltert.forEach(rezept => {
-                   liste.innerHTML += `
-                    <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
-                        <div class="rezept-karte-inhalt">
-                            <h3>${rezept.titel}</h3>
-                            <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
-                            <h4>Zutaten:</h4>
-                            <p>${rezept.zutaten}</p>
-                            <h4>Zubereitung:</h4>
-                            <p>${rezept.zubereitung}</p>
-                            <div class="rezept-buttons">
-                                <button class="btn-bearbeiten" onclick="rezeptBearbeiten(${rezept.id}, '${rezept.titel}', '${rezept.kategorie}', '${rezept.schwierigkeit}', ${rezept.portionen}, ${rezept.zubereitungszeit}, '${rezept.zutaten}', '${rezept.zubereitung}')">✏️ Bearbeiten</button>
-                                <button onclick="rezeptLoeschen(${rezept.id})">🗑️ Löschen</button>
-                            </div>
-                        </div>
-                    </div>`;
-            });
+            gefiltert.forEach(rezept => { liste.innerHTML += karteHTML(rezept); });
         }
 
         async function rezepteFiltern() {
             const kategorie = document.getElementById("filter-kategorie").value;
-            const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte");
-            const rezepte = await antwort.json();
-
-            const gefiltert = kategorie === "" ? rezepte : rezepte.filter(rezept =>
-                rezept.kategorie === kategorie
-            );
-
+            const gefiltert = kategorie === "" ? alleRezepte : alleRezepte.filter(r => r.kategorie === kategorie);
             const liste = document.getElementById("rezepte-liste");
             liste.innerHTML = "";
-
-            gefiltert.forEach(rezept => {
-                liste.innerHTML += `
-                       <div class="rezept-karte">
-                        ${rezept.foto ? `<img src="https://web-production-a5f03.up.railway.app${rezept.foto}">` : ""}
-                        <div class="rezept-karte-inhalt">
-                            <h3>${rezept.titel}</h3>
-                            <p class="rezept-meta">📂 ${rezept.kategorie} | ⭐ ${rezept.schwierigkeit} | 👥 ${rezept.portionen} Portionen | ⏰ ${rezept.zubereitungszeit} Min</p>
-                            <h4>Zutaten:</h4>
-                            <p>${rezept.zutaten}</p>
-                            <h4>Zubereitung:</h4>
-                            <p>${rezept.zubereitung}</p>
-                            <div class="rezept-buttons">
-                                <button class="btn-bearbeiten" onclick="rezeptBearbeiten(${rezept.id}, '${rezept.titel}', '${rezept.kategorie}', '${rezept.schwierigkeit}', ${rezept.portionen}, ${rezept.zubereitungszeit}, '${rezept.zutaten}', '${rezept.zubereitung}')">✏️ Bearbeiten</button>
-                                <button onclick="rezeptLoeschen(${rezept.id})">🗑️ Löschen</button>
-                            </div>
-                        </div>
-                    </div>`;
-            });
+            gefiltert.forEach(rezept => { liste.innerHTML += karteHTML(rezept); });
         }
 
-        let aktuelleId = null;
-
-        function rezeptBearbeiten(id, titel, kategorie, schwierigkeit, portionen, zubereitungszeit, zutaten, zubereitung) {
+        function rezeptBearbeiten(id) {
+            const rezept = alleRezepte.find(r => r.id === id);
             aktuelleId = id;
-            document.getElementById("titel").value = titel;
-            document.getElementById("kategorie").value = kategorie;
-            document.getElementById("schwierigkeit").value = schwierigkeit;
-            document.getElementById("portionen").value = portionen;
-            document.getElementById("zubereitungszeit").value = zubereitungszeit;
-            document.getElementById("zutaten").value = zutaten;
-            document.getElementById("zubereitung").value = zubereitung;
-
+            document.getElementById("titel").value = rezept.titel;
+            document.getElementById("kategorie").value = rezept.kategorie;
+            document.getElementById("schwierigkeit").value = rezept.schwierigkeit;
+            document.getElementById("portionen").value = rezept.portionen;
+            document.getElementById("zubereitungszeit").value = rezept.zubereitungszeit;
+            document.getElementById("zutaten").value = rezept.zutaten;
+            document.getElementById("zubereitung").value = rezept.zubereitung;
             document.getElementById("speichern-btn").textContent = "✏️ Aktualisieren";
             window.scrollTo(0, 0);
         }
@@ -450,35 +418,25 @@
                 zubereitung: document.getElementById("zubereitung").value,
                 foto: ""
             };
-
-                await fetch(`https://web-production-a5f03.up.railway.app/rezepte/${aktuelleId}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify(rezept)
-                });
-
+            await fetch(`https://web-production-a5f03.up.railway.app/rezepte/${aktuelleId}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
+                body: JSON.stringify(rezept)
+            });
             aktuelleId = null;
             document.getElementById("speichern-btn").textContent = "Rezept speichern";
             rezepteHolen();
         }
 
-        let token = null;
-
         async function login() {
             const username = document.getElementById("login-username").value;
             const passwort = document.getElementById("login-passwort").value;
-
             const antwort = await fetch("https://web-production-a5f03.up.railway.app/login", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({username, passwort})
             });
-
             const data = await antwort.json();
-
             if (data.token) {
                 token = data.token;
                 document.getElementById("login-bereich").style.display = "none";
@@ -493,8 +451,6 @@
             const bereich = document.getElementById("registrierung-bereich");
             if (bereich) {
                 bereich.style.display = bereich.style.display === "none" ? "block" : "none";
-            } else {
-                console.log("Element nicht gefunden!");
             }
         }
 
@@ -502,22 +458,19 @@
             const username = document.getElementById("reg-username").value;
             const email = document.getElementById("reg-email").value;
             const passwort = document.getElementById("reg-passwort").value;
-
             const antwort = await fetch("https://web-production-a5f03.up.railway.app/registrieren", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({username, email, passwort})
-        });
-
-        const data = await antwort.json();
-        if (data.nachricht) {
-            alert("Account erstellt! Bitte einloggen.");
-            zeigeRegistrierung();
-        } else {
-            alert(data.fehler);
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({username, email, passwort})
+            });
+            const data = await antwort.json();
+            if (data.nachricht) {
+                alert("Account erstellt! Bitte einloggen.");
+                zeigeRegistrierung();
+            } else {
+                alert(data.fehler);
+            }
         }
-    }
-
     </script>
   </div>
 </body>
