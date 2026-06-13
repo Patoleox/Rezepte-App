@@ -272,7 +272,6 @@
             const antwort = await fetch("https://web-production-a5f03.up.railway.app/login", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({username: "Patoleox", passwort: "FabregaS44!?"})
             });
             const data = await antwort.json();
             console.log("Token:", data.token);
@@ -321,6 +320,16 @@
             const antwort = await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
                 headers: {"Authorization": `Bearer ${token}`}
             });
+
+            if (antwort.status === 401) {
+                localStorage.removeItem("token");
+                token = null;
+                document.getElementById("login-bereich").style.display = "block";
+                document.getElementById("app-bereich").style.display = "none";
+                alert("Sitzung abgelaufen, bitte neu einloggen.");
+                return;
+            }
+
             alleRezepte = await antwort.json();
             const liste = document.getElementById("rezepte-liste");
             liste.innerHTML = "";
@@ -416,6 +425,20 @@
         }
 
         async function rezeptAktualisieren() {
+            const fotoDatei = document.getElementById("foto").files[0];
+            let fotoUrl = alleRezepte.find(r => r.id === aktuelleId)?.foto || "";
+
+            if (fotoDatei) {
+                const formData = new FormData();
+                formData.append("datei", fotoDatei);
+                const fotoAntwort = await fetch("https://web-production-a5f03.up.railway.app/upload-foto", {
+                    method: "POST",
+                    body: formData
+                });
+                const fotoData = await fotoAntwort.json();
+                fotoUrl = fotoData.foto_url;
+            }
+
             const rezept = {
                 titel: document.getElementById("titel").value,
                 kategorie: document.getElementById("kategorie").value,
