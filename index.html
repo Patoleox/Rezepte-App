@@ -268,21 +268,6 @@
     </div><!-- container Ende -->
 
     <script>
-        window.onload = async function() {
-            const antwort = await fetch("https://web-production-a5f03.up.railway.app/login", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-            });
-            const data = await antwort.json();
-            console.log("Token:", data.token);
-
-            const rezepte = await fetch("https://web-production-a5f03.up.railway.app/rezepte", {
-                headers: {"Authorization": `Bearer ${data.token}`}
-            });
-            const rData = await rezepte.json();
-            console.log("Rezepte:", JSON.stringify(rData));
-        }
-
         let token = localStorage.getItem("token");
         let aktuelleId = null;
         let alleRezepte = [];
